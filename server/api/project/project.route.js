@@ -148,15 +148,11 @@ app.put("/api/projects/updatemanystaff", function(req, res) {
             UserServ
             .updates(unset_query1,unset_query2)//unset all related staff projectno with specified pid
             .then(function(uresult){
-              //  console.log(uresult);
                 var push_query1 = {sid:{$in:project.staff}};
                 var push_query2 = {$push:{projectno:project.pid}};
-              //  console.log(JSON.stringify(push_query1));
-              //  console.log(push_query2);
                 UserServ
                 .updates(push_query1,push_query2)//push projectno to all related staff record
                 .then(function(aresult){
-                  //console.log(aresult);
                   var replace_query = {$set:{staff:project.staff}};
                     ProjectServ
                     .update(project_query,replace_query)//renew the staff column in project record
@@ -178,7 +174,7 @@ app.put("/api/projects/updatemanystaff", function(req, res) {
           res.status(500).send('Error'+err);
         })
   })
-  .catch(function(sid){
+  .catch(function(sid){//staffvalidation
     res.status(500).send('rejected due to null user'+sid);
   });
 })
@@ -201,13 +197,12 @@ function staffvalidation(staff){
             return resolve();
           }
         })
-        .catch(function(err){//push array in project table
+        .catch(function(err){
           res.status(500).send('Error'+err);
         })
       })
     })
     .then(function(result){
-      console.log("resolved");
       resolve(result);
     })
     .catch(function(sid){
@@ -217,35 +212,60 @@ function staffvalidation(staff){
 };
 
 
-/*var query = {};
-var r = true;
-var length = Object.keys(staff).length;
-var i=0;
-for(i;i<length;i++){
-    query.sid = staff[i];
-    UserServ
-    .findOne(query)//unset all related staff projectno with specified pid
-    .then(function(rresult){
-      i=i-1;
-      console.log(staff[i]);
-      console.log(length);
-      console.log(rresult);
-      if(rresult==null){
-        r = staff[i];
-        resolve(r)
-      }
-    }).catch(function(err){//push array in project table
-      res.status(500).send('Error'+err);
-    })
-}*/
-
 app.patch("/api/projects/addstaff", function(req, res) {
-  res.send("Update");
+  var project = req.body;
+  var staff_query = {sid:project.sid,projectno:{$nin:[project.pid]}};
+  UserServ
+  .findOne(staff_query)//find out if there is any id which from entered query not exists in user table
+  .then(function(rresult){
+    if(rresult!=null){
+      staff_query = {sid:project.sid};
+      var pushs_query = {$push:{projectno:project.pid}};
+      UserServ
+      .update(staff_query,pushs_query)//push projectno in user table
+      .then(function(result){
+
+          ProjectServ
+          .update(staff_query,pushs_query)//push staff in project table
+          .then(function(result){
+              res.status(201).send('Staff Added in this project');
+          })
+          .catch(function(err){//push staff in project table
+            res.status(500).send('Error'+err);
+          })
+      })
+      .catch(function(err){//push projectno in user table
+        res.status(500).send('Error'+err);
+      })
+    } else {
+      res.status(500).send('No Staff Found or Selected Staff has been registered in this project');
+    }
+  })
+  .catch(function(err){//search sid
+    res.status(500).send('Error'+err);
+  })
 });
 
 
 app.patch("/api/projects/removestaff", function(req, res) {
-  res.send("Update");
+  var project = req.body;
+  var unset_query1 = {projectno:{$in:[project.pid]},sid:project.sid};
+  var unset_query2 = {$pull:{projectno:project.pid}};
+  UserServ
+  .updates(unset_query1,unset_query2)//unset all related staff projectno with specified pid
+  .then(function(uresult){
+    var project_query = {pid:project.pid};
+    var pullp_query = {$pull:{staff:project.sid}};
+      ProjectServ
+      .updates(project_query,pullp_query)//unset all related staff projectno with specified pid
+      .then(function(uresult){
+        res.send('Selected Staff has been removed from this project');
+      }).catch(function(err){
+        res.status(500).send('Error '+err);
+      })
+  }).catch(function(err){
+    res.status(500).send('Error '+err);
+  })
 });
 
 
