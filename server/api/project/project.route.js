@@ -95,7 +95,7 @@ app.post("/api/projects/insert", function(req, res) {
 });
 
 
-app.patch("/api/projects/updatedetail", function(req, res) {
+app.put("/api/projects/updatedetail", function(req, res) {
   var project = req.body;
   var name_query = {name:project.name,pid:{$ne:project.pid}};
   var query = {pid:project.pid};
@@ -110,7 +110,15 @@ app.patch("/api/projects/updatedetail", function(req, res) {
 
       var update_query= {name: project.name,description:project.description,
         address: project.address,type: project.type,start_date:start_date,
-        end_date:end_date,assigned_date:project.assigned_date};
+        end_date:end_date,assigned_date:assigned_date};
+        console.log(update_query);
+        ProjectServ
+        .update(query,update_query)//get the data of that project
+        .then(function(presult){
+          res.send('Project has been updated');
+        }).catch(function(err){
+          res.status(500).send('Error'+err);
+        })
     }else{
       res.status(500).send('Project Name is already existed');
     }
@@ -120,24 +128,116 @@ app.patch("/api/projects/updatedetail", function(req, res) {
 });
 
 
-app.put("/api/projects/updateManystaff", function(req, res) {
+app.put("/api/projects/updatemanystaff", function(req, res) {
   var project = req.body;
   var project_query = {pid:project.pid};
-  ProjectServ
-  .findOne(project_query)//get the data of that project
-  .then(function(presult){
-    if(presult!=null){
-      var unset_query1 = {projectno:{$in:[project.pid]}};
-      var unset_query2 = {$pull:{projectno:projectno};
 
-    }else{
-      res.status(500).send('No Project found! ');
-    }
-  }).catch(function(err){
-    res.status(500).send('Error'+err);
+  console.log(project.staff);
+  staffvalidation(project.staff)
+  .then(function(result){
+    console.log(result);
+        ProjectServ
+        .findOne(project_query)//get the data of that project
+        .then(function(presult){
+      //    console.log(presult);
+          if(presult!=null){
+            var unset_query1 = {projectno:{$in:[project.pid]}};
+            var unset_query2 = {$pull:{projectno:project.pid}};
+          //  console.log(JSON.stringify(unset_query1));
+          //  console.log(unset_query2);
+            UserServ
+            .updates(unset_query1,unset_query2)//unset all related staff projectno with specified pid
+            .then(function(uresult){
+              //  console.log(uresult);
+                var push_query1 = {sid:{$in:project.staff}};
+                var push_query2 = {$push:{projectno:project.pid}};
+              //  console.log(JSON.stringify(push_query1));
+              //  console.log(push_query2);
+                UserServ
+                .updates(push_query1,push_query2)//push projectno to all related staff record
+                .then(function(aresult){
+                  //console.log(aresult);
+                  var replace_query = {$set:{staff:project.staff}};
+                    ProjectServ
+                    .update(project_query,replace_query)//renew the staff column in project record
+                    .then(function(rresult){
+                      res.send('Modified');
+                    }).catch(function(err){//push array in project table
+                      res.status(500).send('Error'+err);
+                    })
+                }).catch(function(err){//push array in user table
+                  res.status(500).send('Error'+err);
+                })
+            }).catch(function(err){//unset all related staff of project in user table
+              res.status(500).send('Error'+err);
+            })
+          }else{
+            res.status(500).send('No Project found! ');
+          }
+        }).catch(function(err){//get data of project
+          res.status(500).send('Error'+err);
+        })
   })
-});
+  .catch(function(sid){
+    res.status(500).send('rejected due to null user'+sid);
+  });
+})
 
+
+function staffvalidation(staff){
+  return new Promise(function(resolve, reject){
+    Promise.each(staff,function(sid){
+      return new Promise(function(resolve, reject){
+        var query = {};
+        var r = true;
+        var length = Object.keys(staff).length;
+        query.sid = sid;
+        UserServ
+        .findOne(query)//find out if there is any id which from entered query not exists in user table
+        .then(function(rresult){
+          if(rresult==null){
+            return reject(sid);
+          } else {
+            return resolve();
+          }
+        })
+        .catch(function(err){//push array in project table
+          res.status(500).send('Error'+err);
+        })
+      })
+    })
+    .then(function(result){
+      console.log("resolved");
+      resolve(result);
+    })
+    .catch(function(sid){
+      reject(sid);
+    })
+  })
+};
+
+
+/*var query = {};
+var r = true;
+var length = Object.keys(staff).length;
+var i=0;
+for(i;i<length;i++){
+    query.sid = staff[i];
+    UserServ
+    .findOne(query)//unset all related staff projectno with specified pid
+    .then(function(rresult){
+      i=i-1;
+      console.log(staff[i]);
+      console.log(length);
+      console.log(rresult);
+      if(rresult==null){
+        r = staff[i];
+        resolve(r)
+      }
+    }).catch(function(err){//push array in project table
+      res.status(500).send('Error'+err);
+    })
+}*/
 
 app.patch("/api/projects/addstaff", function(req, res) {
   res.send("Update");
@@ -152,7 +252,7 @@ app.patch("/api/projects/removestaff", function(req, res) {
 app.delete("/api/projects/delete", function(req, res) {
   var del = {sid:req.query.id};//delete by user id
 
-  UserServ
+  ProjectServ
     .remove(del)
     .then(function(result){
       var obj=JSON.parse(result);

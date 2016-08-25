@@ -64,7 +64,7 @@ app.post("/api/users/insert", function(req, res) {
                         var ubirthday = dateFormat(new Date(user.birthday),"isoDate");
                         var edate = dateFormat(new Date(user.employment_date),"isoDate");
                         var iBeaconNo = 'i123';
-                        var projectno = [""];
+                        var projectno = [];
                         var create = {cid:user.cid,sid:sid,email:user.email,password:user.password,
                         chiname:user.chiname,engname:user.engname,role:user.role,iBeaconNo:iBeaconNo,department:user.department,
                         worktype:user.worktype,gender:user.gender,contactno:user.contactno,birthday:ubirthday,employment_date:edate,projectno:projectno};

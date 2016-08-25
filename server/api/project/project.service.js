@@ -17,6 +17,9 @@ module.exports = {
   update: function(query,update){
     return Project.update(query,update)
   },
+  updates: function(query,update){
+    return Project.update(query,update,{multi:true})
+  },
   remove: function(id){
     return Project.remove(id)
   },

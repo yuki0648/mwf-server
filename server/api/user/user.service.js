@@ -14,6 +14,9 @@ module.exports = {
   create: function(body) {
     return User.create(body)
   },
+  updates: function(query,update){
+    return User.update(query,update,{multi:true})
+  },
   remove: function(id){
     return User.remove(id)
   },
