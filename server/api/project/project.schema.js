@@ -4,7 +4,7 @@ var Promise = require('bluebird');
 
 var projectSchema = new Schema({
   name: String,
-  projectNo: String,
+  pid: String,
   description:String,
   address: String,
   type: String,

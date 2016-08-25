@@ -21,6 +21,6 @@ module.exports = {
     return Project.remove(id)
   },
   sort: function(){
-    return Project.find({},{sid:1}).sort({sid:-1}).limit(1)
+    return Project.find({},{pid:1}).sort({pid:-1}).limit(1)
   }
 }
