@@ -97,7 +97,6 @@ app.post("/api/users/insert", function(req, res) {
 app.post("/api/users/query", function(req, res) {
   var user = req.body;
   var query = querymaker(user);
-
   UserServ
     .finds(query)
     .then(function(result){
@@ -202,7 +201,7 @@ app.get("/api/users/queryAll", function(req, res) {
 app.patch("/api/users/update_owner",function(req, res){
   var user = req.body;
   var user_query = {sid:user.sid};
-
+  console.log(user);
   UserServ
   .findOne(user_query)//check if the sid exists
   .then(function(uresult){

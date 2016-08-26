@@ -3,7 +3,8 @@ var Schema = mongoose.Schema;
 var Promise = require('bluebird');
 
 var projectSchema = new Schema({
-  name: String,
+  chiname: String,
+  engname: String,
   pid: String,
   description:String,
   address: String,

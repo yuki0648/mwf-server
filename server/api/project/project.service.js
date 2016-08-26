@@ -6,7 +6,7 @@ module.exports = {
     return Project.find()
   },
   finds: function(query) {
-    return User.find(query)
+    return Project.find(query)
   },
   findOne: function(query) {
     return Project.findOne(query)

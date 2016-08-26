@@ -61,7 +61,7 @@ function embeddedmaker(department){//functionid:1 ==insert functionid:2 ==update
 
 app.post("/api/company/insert", function(req, res) {
   var company = req.body;
-  console.log(JSON.stringify(company));
+  console.log(company);
   var query = {$or:[{chiname: company.chiname},{engname:company.engname}]};
   SuperUserServ
   .findOne(query)//find if the chi/engname used
@@ -85,23 +85,28 @@ app.post("/api/company/insert", function(req, res) {
               .then(function(result){
                         var update2 = embeddedmaker(company.department);
                         SuperUserServ
-                        .update(query,update2)
+                        .update(query,update2)//update deptn+id
                         .then(function(result){
+                          console.log("New company added");
                           res.status(201).send("New company added");
-                        }).catch(function(err){
+                        }).catch(function(err){//update deptn+id
                           res.status(500).send('Error: '+err);
                         })
-              }).catch(function(err){
+              }).catch(function(err){//insert
+                console.log('insert '+err);
                   res.status(500).send('Error: '+err);
               })
-          }).catch(function(err){
+          }).catch(function(err){//get maximum id in db
+            console.log('sid '+err);
               res.status(500).send('Error: '+err);
           })
       }else{
-          res.status(500).send("Company name Already Exists");
+        console.log('company name ');
+          res.status(500).send("Company name Already Exists   2");
       }
-  }).catch(function(err){
-    res.send('Error: '+err);
+  }).catch(function(err){//find if the chi/engname used
+    console.log('findOne '+err);
+    res.status(500).send('Error'+err);
   })
 });
 
@@ -232,7 +237,7 @@ function querymaker(company,functionid){//functionid:2 == query method,functioni
     var start_date ;
     var end_date ;
     if(company.start_date == ''){
-      start_date = dateFormat(new Date("2016-06-30"), "isoDate");//start from system start running date
+      start_date = dateFormat(new Date("2010-01-01"), "isoDate");//start from system start running date
       end_date = dateFormat(new Date(company.end_date),"isoDate");
     }else if(company.end_date == ''){
       start_date = dateFormat(new Date(company.start_date),"isoDate");
