@@ -2,7 +2,7 @@ var dateFormat = require('dateformat');
 var Promise = require('bluebird');
 var UserServ = require("./user.service");
 var CompanyServ = require("../super_user/super_user.service");
-
+var ProjectServ = require("../project/project.service");
 
 function getcountstring(result){//split the result string and get the maximum existing sid
   var result2 = JSON.stringify(result);
@@ -307,19 +307,34 @@ app.patch("/api/users/update", function(req, res) {
 
 
 app.delete("/api/users/delete", function(req, res) {
-  var del = {sid:req.query.sid};//delete by user id
-
+  var user_query = {sid:req.query.sid};
   UserServ
-    .remove(del)
+    .findOne(user_query)//get user data
     .then(function(result){
-      var obj=JSON.parse(result);
-        if(obj.n!=0){
-          res.send('User has been removed');
-        }
-        else{
-          res.status(500).send('No User found! ');
-        }
-    }).catch(function(err){
-      res.status(500).send('Error : '+err);
-    })
+        var project_query1 = {pid:{$in:result.projectno}};//find
+        var project_query2 = {$pull:{staff:req.query.sid}};
+        console.log(project_query1);
+        console.log(project_query2);
+        ProjectServ
+        .updates(project_query1,project_query2)//delete all related project connection
+        .then(function(uresult){
+              UserServ
+                .remove(user_query)//delete by user id
+                .then(function(result){
+                  var obj=JSON.parse(result);
+                    if(obj.n!=0){
+                      res.send('User has been removed');
+                    }
+                    else{
+                      res.status(500).send('No User found! ');
+                    }
+                }).catch(function(err){
+                  res.status(500).send('Error : '+err);
+                })
+          }).catch(function(err){
+            res.status(500).send('Error : '+err);
+          })
+  }).catch(function(err){
+    res.status(500).send('Error : '+err);
+  })
 });

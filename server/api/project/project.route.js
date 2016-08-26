@@ -7,7 +7,11 @@ app.get("/api/projects/queryAll", function(req, res) {
   ProjectServ
     .find()
     .then(function(result){
-      res.send(result);
+      if(result.length>0){
+        res.send(result);
+      }else{
+        res.status(500).send('No Project Found');
+      }
     })
     .catch(function(err){
       res.status(500).send(err);
@@ -278,30 +282,40 @@ app.patch("/api/projects/addstaff", function(req, res) {
   .findOne(staff_query)//find out if there is any id which from entered query not exists in user table
   .then(function(rresult){
     if(rresult!=null){
-      staff_query = {sid:project.sid};
-      var pushs_query = {$push:{projectno:project.pid}};
-      UserServ
-      .update(staff_query,pushs_query)//push projectno in user table
-      .then(function(result){
       var project_query = {pid:project.pid};
-      var pushp_query = {$push:{staff:project.sid}};
-          ProjectServ
-          .update(project_query,pushp_query)//push staff in project table
-          .then(function(result){
-              res.status(201).send('Staff Added in this project');
-          })
-          .catch(function(err){//push staff in project table
+      ProjectServ
+      .findOne(project_query)//find out if the project exists
+      .then(function(presult){
+          if(presult!=null){
+                staff_query = {sid:project.sid};
+                var pushs_query = {$push:{projectno:project.pid}};
+                UserServ
+                .update(staff_query,pushs_query)//push projectno in user table
+                .then(function(result){
+                    var project_query = {pid:project.pid};
+                    var pushp_query = {$push:{staff:project.sid}};
+                        ProjectServ
+                        .update(project_query,pushp_query)//push staff in project table
+                        .then(function(result){
+                            res.status(201).send('Staff Added in this project');
+                        })
+                        .catch(function(err){//push staff in project table
+                            res.status(500).send('Error'+err);
+                        })
+                  })
+                  .catch(function(err){//push projectno in user table
+                    res.status(500).send('Error'+err);
+                  })
+              }else{
+                res.status(500).send('No Project Found');
+              }
+          }).catch(function(err){//search pid
             res.status(500).send('Error'+err);
           })
-      })
-      .catch(function(err){//push projectno in user table
-        res.status(500).send('Error'+err);
-      })
-    } else {
-      res.status(500).send('No Staff Found or Selected Staff has been registered in this project');
-    }
-  })
-  .catch(function(err){//search sid
+        }else{
+          res.status(500).send('No Staff Found or Selected Staff has been registered in this project');
+        }
+  }).catch(function(err){//search sid
     res.status(500).send('Error'+err);
   })
 });
@@ -309,33 +323,47 @@ app.patch("/api/projects/addstaff", function(req, res) {
 
 app.patch("/api/projects/removestaff", function(req, res) {
   var project = req.body;
-  var unset_query1 = {sid:project.sid};
-  var unset_query2 = {$pull:{projectno:project.pid}};
+  var staff_query = {sid:project.sid,projectno:project.pid};
   UserServ
-  .update(unset_query1,unset_query2)//unset all related staff projectno with specified pid
-  .then(function(uresult){
-    console.log(uresult);
-    if(uresult.nModified<1){
-        var project_query = {pid:project.pid};
-        var pullp_query = {$pull:{staff:project.sid}};
-          ProjectServ
-          .update(project_query,pullp_query)//unset all related staff projectno with specified pid
-          .then(function(upresult){
-            console.log(uresult);
-            if(upresult.nModified<1){
-              res.send('Selected Staff has been removed from this project');
-            }else{
-              res.status(500).send('Project '+project.pid+' not found');
+  .findOne(staff_query)//find if the project registered with staff
+  .then(function(rresult){
+    if(rresult!=null){
+      var project_query = {pid:project.pid,staff:project.sid};
+      ProjectServ
+      .findOne(project_query)//find if the staff is in the project
+      .then(function(presult){
+          if(presult!=null){
+              var unset_query1 = {sid:project.sid};
+              var unset_query2 = {$pull:{projectno:project.pid}};
+              UserServ
+              .update(unset_query1,unset_query2)//unset all related staff projectno with specified pid
+              .then(function(uresult){
+                console.log(uresult);
+                    var project_query = {pid:project.pid};
+                    var pullp_query = {$pull:{staff:project.sid}};
+                      ProjectServ
+                      .update(project_query,pullp_query)//unset all related staff projectno with specified pid
+                      .then(function(upresult){
+                        console.log(upresult);
+                          res.send('Selected Staff has been removed from this project');
+                      }).catch(function(err){
+                        res.status(500).send('Error '+err);
+                      })
+              }).catch(function(err){//update in user table
+                res.status(500).send('Error '+err);
+              })
+            }else{//no result for project table findOne
+              res.status(500).send('Project '+project.pid+' not found or Staff has not been registered in this project');
             }
-          }).catch(function(err){
+          }).catch(function(err){//find if the staff is in the project
             res.status(500).send('Error '+err);
           })
-    }else{
-      res.status(500).send('Staff '+project.sid+' not work in this project');
-    }
-  }).catch(function(err){
-    res.status(500).send('Error '+err);
-  })
+        }else{//no result for user table findOne
+          res.status(500).send('Staff '+project.sid+' not work in this project or Staff not found');
+        }
+      }).catch(function(err){//find if the project registered with staff
+        res.status(500).send('Error '+err);
+      })
 });
 
 
@@ -345,6 +373,7 @@ app.delete("/api/projects/delete", function(req, res) {
   ProjectServ
     .findOne(project_query)//get sid
     .then(function(result){
+      console.log(result);
         var sdel1 = {sid:{$in:result.staff}};
         var sdel2 = {$pull:{projectno:project.pid}};
         UserServ
