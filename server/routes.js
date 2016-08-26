@@ -5,6 +5,7 @@ require("./api/project/project.route.js");
 require("./api/user/user.route.js");
 require("./api/super_user/super_user.route.js");
 require("./api/user/user_crud.route.js");
+require("./api/attendance/attendance.route.js");
 
 
 app.use(express.static(path.join(rootPath, "../public")))

@@ -3,6 +3,25 @@ var dateFormat = require('dateformat');
 var Promise = require('bluebird');
 var UserServ = require("../user/user.service");
 
+
+app.get("/api/projects/queryOne", function(req, res) {
+  var project = req.query;
+  var project_query = {pid:project.pid};
+  ProjectServ
+    .findOne(project_query)
+    .then(function(result){
+      if(result!=null){
+        res.send(result);
+      }else{
+        res.status(500).send('No Project Found');
+      }
+    })
+    .catch(function(err){
+      res.status(500).send('Error :' + err);
+    })
+});
+
+
 app.get("/api/projects/queryAll", function(req, res) {
   ProjectServ
     .find()
@@ -313,7 +332,7 @@ app.patch("/api/projects/addstaff", function(req, res) {
             res.status(500).send('Error'+err);
           })
         }else{
-          res.status(500).send('No Staff Found or Selected Staff has been registered in this project');
+          res.status(500).send('Staff not Found or Selected Staff has been registered in this project');
         }
   }).catch(function(err){//search sid
     res.status(500).send('Error'+err);
