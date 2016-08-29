@@ -95,11 +95,15 @@ function querymaker(att){
       ettemp = 'T23:59:59Z';
     }
     if(att.end_date == '' && att.start_date == ''){
+      var d = new Date();
+      d = dateFormat('yyyy-mm-dd');
       start_date = dateFormat(new Date("2010-01-01"+sttemp), "isoUtcDateTime");//start from 2010-01-01 date
-      end_date = dateFormat(new Date(Date.now+ettemp), "isoUtcDateTime");//get current date
+      end_date = dateFormat(new Date(d+ettemp), "isoUtcDateTime");//get current date
     }else if(att.end_date == ''){
+      var d = new Date();
+      d = dateFormat('yyyy-mm-dd');
       start_date = dateFormat(new Date(att.start_date+sttemp),"isoUtcDateTime");
-      end_date = dateFormat(new Date(Date.now+ettemp), "isoUtcDateTime");//get current date
+      end_date = dateFormat(new Date(d+ettemp), "isoUtcDateTime");//get current date
     }else if(att.start_date == ''){
       start_date = dateFormat(new Date("2010-01-01"+sttemp), "isoUtcDateTime");//start from 2010-01-01 date
       end_date = dateFormat(new Date(att.end_date+ettemp),"isoUtcDateTime");
