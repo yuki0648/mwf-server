@@ -6,7 +6,8 @@ var dateFormat = require('dateformat');
 var attendanceSchema = new Schema({
   sid: String,
   status: String,
-  recordedate:{ type: Date },
+  recorddate:{ type: Date },
+  recordtime: String,
   iBeaconNo: String,
   remarks: String
 });

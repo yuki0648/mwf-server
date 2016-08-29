@@ -3,6 +3,7 @@ var Promise = require('bluebird');
 var UserServ = require("./user.service");
 var CompanyServ = require("../super_user/super_user.service");
 var ProjectServ = require("../project/project.service");
+var AttendServ = require("../attendance/attendance.service");
 
 function getcountstring(result){//split the result string and get the maximum existing sid
   var result2 = JSON.stringify(result);
@@ -318,17 +319,23 @@ app.delete("/api/users/delete", function(req, res) {
         ProjectServ
         .updates(project_query1,project_query2)//delete all related project connection
         .then(function(uresult){
-              UserServ
-                .remove(user_query)//delete by user id
-                .then(function(result){
-                  var obj=JSON.parse(result);
-                    if(obj.n!=0){
-                      res.send('User has been removed');
-                    }
-                    else{
-                      res.status(500).send('No User found! ');
-                    }
-                }).catch(function(err){
+          AttendServ
+            .remove(user_query)//delete by user id in attendance table
+            .then(function(result){
+                    UserServ
+                      .remove(user_query)//delete by user id
+                      .then(function(result){
+                        var obj=JSON.parse(result);
+                          if(obj.n!=0){
+                            res.send('User has been removed');
+                          }
+                          else{
+                            res.status(500).send('No User found! ');
+                          }
+                      }).catch(function(err){
+                        res.status(500).send('Error : '+err);
+                      })
+                }).catch(function(err){//delete all related attendances
                   res.status(500).send('Error : '+err);
                 })
           }).catch(function(err){

@@ -10,10 +10,9 @@ app.post("/api/attendance/insert", function(req, res) {
   .findOne(user_query)
   .then(function(uresult){
     if(uresult!=null){
-        var ttemp = att.recorddate+'T'+att.recordtime+'Z';
-        console.log(ttemp);
-        var rdate = dateFormat(new Date(ttemp),"isoUtcDateTime");
-        var create = {sid:att.sid,status:att.status,recordedate:rdate,iBeaconNo:att.iBeaconNo,remarks:att.remarks};
+        var rdate = dateFormat(new Date(att.recorddate),"isoDate");
+        console.log(rdate);
+        var create = {sid:att.sid,status:att.status,recorddate:rdate,recordtime:att.recordtime,iBeaconNo:att.iBeaconNo,remarks:att.remarks};
         console.log(create);
         AttendServ
         .create(create)
@@ -75,43 +74,37 @@ function querymaker(att){
   if(att.iBeaconNo!=''){
     query.iBeaconNo = att.iBeaconNo;
   }
-  if(att.start_date!=''||att.end_date!='' || att.start_time!='' ||att.end_time!=''){
-    query.recordedate = {};
-    var start_date ;
-    var end_date ;
-    var sttemp;
-    var ettemp;
-    if(att.start_time!='' && att.end_time!=''){
-      sttemp = 'T'+att.start_time+'Z';
-      ettemp = 'T'+att.end_time+'Z';
-    }else if(att.start_time!=''){
-      sttemp = 'T'+att.start_time+'Z';
-      ettemp = 'T23:59:59Z';
-    }else if(att.end_time!=''){
-      sttemp = 'T00:00:00Z';
-      ettemp = 'T'+att.end_time+'Z';
-    }else{
-      sttemp = 'T00:00:00Z';
-      ettemp = 'T23:59:59Z';
+  if(att.start_date!=''||att.end_date!=''){
+      query.recorddate = {};
+      var start_date ;
+      var end_date ;
+      if(att.start_date == ''){
+        start_date = dateFormat(new Date("2010-01-01"), "isoDate");//start from 2010-01-01 date
+        end_date = dateFormat(new Date(att.end_date),"isoDate");
+      }else if(att.end_date == ''){
+        start_date = dateFormat(new Date(att.start_date),"isoDate");
+        end_date = dateFormat(new Date(), "isoDate");//get current date
+      }else{
+        start_date = dateFormat(new Date(att.start_date),"isoDate");//user entered two arguments
+        end_date = dateFormat(new Date(att.end_date),"isoDate");
+      }
+      query.recorddate = {$gte:start_date,$lte:end_date};
     }
-    if(att.end_date == '' && att.start_date == ''){
-      var d = new Date();
-      d = dateFormat('yyyy-mm-dd');
-      start_date = dateFormat(new Date("2010-01-01"+sttemp), "isoUtcDateTime");//start from 2010-01-01 date
-      end_date = dateFormat(new Date(d+ettemp), "isoUtcDateTime");//get current date
-    }else if(att.end_date == ''){
-      var d = new Date();
-      d = dateFormat('yyyy-mm-dd');
-      start_date = dateFormat(new Date(att.start_date+sttemp),"isoUtcDateTime");
-      end_date = dateFormat(new Date(d+ettemp), "isoUtcDateTime");//get current date
-    }else if(att.start_date == ''){
-      start_date = dateFormat(new Date("2010-01-01"+sttemp), "isoUtcDateTime");//start from 2010-01-01 date
-      end_date = dateFormat(new Date(att.end_date+ettemp),"isoUtcDateTime");
+  if(att.start_time!=''||att.end_time!=''){
+    query.recordtime = {};
+    var start_time ;
+    var end_time ;
+    if(att.start_time == ''){
+      start_time = '00:00:00';//start from 00:00:00 date
+      end_time = att.end_time;
+    }else if(att.end_time == ''){
+      start_time = att.start_time;
+      end_time = '23:59:59';//get current date
     }else{
-      start_date = dateFormat(new Date(att.start_date+sttemp),"isoUtcDateTime");//user entered two arguments
-      end_date = dateFormat(new Date(att.end_date+ettemp),"isoUtcDateTime");
+      start_time = att.start_time;//user entered two arguments
+      end_time = att.end_time;
     }
-    query.recordedate = {$gte:start_date,$lte:end_date};
+    query.recordtime = {$gte:start_time,$lte:end_time};
   }
   console.log(query);
   return query;
@@ -120,13 +113,36 @@ function querymaker(att){
 
 app.patch("/api/attendance/update", function(req, res) {
   var att = req.body;
-
+  var query = {_id:att._id};
+  var update = {recorddate:att.recorddate,recordtime:att.recordtime,status:att.status,remarks:att.remarks,iBeaconNo:att.iBeaconNo};
+  AttendServ
+  .update(query,update)
+  .then(function(result){
+    res.send('Attendance has been updated');
+  }).catch(function(err){
+    res.status(500).send('Error : '+err);
+  })
 });
+
+
+app.patch("/api/attendance/updates", function(req, res) {
+  var att = req.body;
+  var query = {_id:{$in:att._id}};
+  var t = 'in';
+  var updates = {status:t};
+  AttendServ
+  .updates(query,updates)
+  .then(function(result){
+    res.send('Attendances have been updated');
+  }).catch(function(err){
+    res.status(500).send('Error'+err);
+  })
+});
+
 
 app.delete("/api/attendance/delete", function(req, res) {
   var att = req.query;
-  var rdate = dateFormat(new Date(att.recordedate),"isoUtcDateTime");
-  var del = {sid:att.sid,recordedate:rdate};//delete by company id
+  var del = {_id:att._id};//delete by attendance _id
 
   AttendServ
     .remove(del)
