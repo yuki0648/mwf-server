@@ -10,7 +10,9 @@ app.post("/api/attendance/insert", function(req, res) {
   .findOne(user_query)
   .then(function(uresult){
     if(uresult!=null){
-        var rdate = dateFormat(new Date(att.recordedate),"isoUtcDateTime");
+        var ttemp = att.recorddate+'T'+att.recordtime+'Z';
+        console.log(ttemp);
+        var rdate = dateFormat(new Date(ttemp),"isoUtcDateTime");
         var create = {sid:att.sid,status:att.status,recordedate:rdate,iBeaconNo:att.iBeaconNo,remarks:att.remarks};
         console.log(create);
         AttendServ
@@ -73,19 +75,37 @@ function querymaker(att){
   if(att.iBeaconNo!=''){
     query.iBeaconNo = att.iBeaconNo;
   }
-  if(att.start_date!=''||att.end_date!=''){
+  if(att.start_date!=''||att.end_date!='' || att.start_time!='' ||att.end_time!=''){
     query.recordedate = {};
     var start_date ;
     var end_date ;
-    if(att.start_date == ''){
-      start_date = dateFormat(new Date("2010-01-01"), "isoUtcDateTime");//start from 2010-01-01 date
-      end_date = dateFormat(new Date(att.end_date),"isoUtcDateTime");
-    }else if(att.end_date == ''){
-      start_date = dateFormat(new Date(att.start_date),"isoUtcDateTime");
-      end_date = dateFormat(new Date(), "isoUtcDateTime");//get current date
+    var sttemp;
+    var ettemp;
+    if(att.start_time!='' && att.end_time!=''){
+      sttemp = 'T'+att.start_time+'Z';
+      ettemp = 'T'+att.end_time+'Z';
+    }else if(att.start_time!=''){
+      sttemp = 'T'+att.start_time+'Z';
+      ettemp = 'T23:59:59Z';
+    }else if(att.end_time!=''){
+      sttemp = 'T00:00:00Z';
+      ettemp = 'T'+att.end_time+'Z';
     }else{
-      start_date = dateFormat(new Date(att.start_date),"isoUtcDateTime");//user entered two arguments
-      end_date = dateFormat(new Date(att.end_date),"isoUtcDateTime");
+      sttemp = 'T00:00:00Z';
+      ettemp = 'T23:59:59Z';
+    }
+    if(att.end_date == '' && att.start_date == ''){
+      start_date = dateFormat(new Date("2010-01-01"+sttemp), "isoUtcDateTime");//start from 2010-01-01 date
+      end_date = dateFormat(new Date(Date.now+ettemp), "isoUtcDateTime");//get current date
+    }else if(att.end_date == ''){
+      start_date = dateFormat(new Date(att.start_date+sttemp),"isoUtcDateTime");
+      end_date = dateFormat(new Date(Date.now+ettemp), "isoUtcDateTime");//get current date
+    }else if(att.start_date == ''){
+      start_date = dateFormat(new Date("2010-01-01"+sttemp), "isoUtcDateTime");//start from 2010-01-01 date
+      end_date = dateFormat(new Date(att.end_date+ettemp),"isoUtcDateTime");
+    }else{
+      start_date = dateFormat(new Date(att.start_date+sttemp),"isoUtcDateTime");//user entered two arguments
+      end_date = dateFormat(new Date(att.end_date+ettemp),"isoUtcDateTime");
     }
     query.recordedate = {$gte:start_date,$lte:end_date};
   }
