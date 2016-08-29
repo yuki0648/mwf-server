@@ -1,29 +1,29 @@
-var Project = require("./attendance.schema");
+var Attendance = require("./attendance.schema");
 var Promise = require('bluebird');
 
 module.exports = {
   find: function() {
-    return Project.find()
+    return Attendance.find()
   },
   finds: function(query) {
-    return Project.find(query)
+    return Attendance.find(query)
   },
   findOne: function(query) {
-    return Project.findOne(query)
+    return Attendance.findOne(query)
   },
   create: function(body) {
-    return Project.create(body)
+    return Attendance.create(body)
   },
   update: function(query,update){
-    return Project.update(query,update)
+    return Attendance.update(query,update)
   },
   updates: function(query,update){
-    return Project.update(query,update,{multi:true})
+    return Attendance.update(query,update,{multi:true})
   },
   remove: function(id){
-    return Project.remove(id)
+    return Attendance.remove(id)
   },
   sort: function(){
-    return Project.find({},{pid:1}).sort({pid:-1}).limit(1)
+    return Attendance.find({},{aid:1}).sort({aid:-1}).limit(1)
   }
 }

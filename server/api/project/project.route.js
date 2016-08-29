@@ -59,22 +59,22 @@ app.post("/api/projects/query", function(req, res) {
 
 function querymaker(project){
   var query = {};
-  if(project.chiname!=""&&project.chiname!=undefined){
+  if(project.chiname!=""){
     query.chiname = new RegExp(project.chiname,'i');
   }
-  if(project.engname!=""&&project.engname!=undefined){
+  if(project.engname!=""){
     query.engname = new RegExp(project.engname,'i');
   }
-  if(project.pid!=""&&project.pid!=undefined){
+  if(project.pid!=""){
     query.pid = project.pid;
   }
-  if(project.address!=""&&project.address!=undefined){
+  if(project.address!=""){
     query.address = new RegExp(project.address,'i');
   }
-  if(project.type!=""&&project.type!=undefined){
+  if(project.type!=""){
     query.type = project.type;
   }
-  if(project.start_date!=""&&project.start_date!=undefined){
+  if(project.start_date!=""){
     var sdate = dateFormat(new Date(project.start_date),"isoDate");
     query.start_date = {$gte:sdate};
   }

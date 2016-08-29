@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Promise = require('bluebird');
+var dateFormat = require('dateformat');
 
 var projectSchema = new Schema({
   chiname: String,
@@ -9,7 +10,7 @@ var projectSchema = new Schema({
   description:String,
   address: String,
   type: String,
-  assigned_date:{ type: Date, default: Date.now('YYYY-MM-DDT00:00:00Z')},
+  assigned_date:{ type: Date, default: dateFormat(Date.now(),'isoDate')},
   start_date:Date,
   end_date:Date,
   staff:[String]

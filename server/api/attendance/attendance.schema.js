@@ -1,10 +1,12 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Promise = require('bluebird');
+var dateFormat = require('dateformat');
 
 var attendanceSchema = new Schema({
   sid: String,
-  recordedat:{ type: Date },
+  status: String,
+  recordedate:{ type: Date },
   iBeaconNo: String,
   remarks: String
 });
