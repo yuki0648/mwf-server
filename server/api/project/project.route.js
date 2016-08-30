@@ -29,7 +29,7 @@ app.get("/api/projects/queryAll", function(req, res) {
       if(result.length>0){
         res.send(result);
       }else{
-        res.status(500).send('No Project Found');
+        res.send(result);
       }
     })
     .catch(function(err){
@@ -48,7 +48,7 @@ app.post("/api/projects/query", function(req, res) {
         console.log();
         res.send(result);
       }else{
-        res.status(500).send('No Project Found');
+        res.send(result);
       }
     })
     .catch(function(err){

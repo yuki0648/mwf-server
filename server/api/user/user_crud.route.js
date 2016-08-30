@@ -104,7 +104,7 @@ app.post("/api/users/query", function(req, res) {
       if(result.length>0){
         res.send(result);
       }else{
-        res.status(500).send('No User Found');
+        res.send(result);
       }
     })
     .catch(function(err){
@@ -190,13 +190,29 @@ app.get("/api/users/queryAll", function(req, res) {
       if(result.length>0){
         res.send(result);
       }else{
-        res.status(500).send('No User Found');
+        res.send(result);
       }
     })
     .catch(function(err){
       res.status(500).send('Error :' + err);
     })
 });
+
+
+app.patch("/api/users/updates_department",function(req,res){
+  var user = req.body;
+  var user_query = {sid:{$in:user.sid}};
+  var department_query = {department:user.department};
+  console.log(user);
+  UserServ
+  .updates(user_query,department_query)//department update
+  .then(function(uresult){
+    res.send('Department of staff have been updated');
+  }).catch(function(err){//department update
+    res.status(500).send('Error : '+err);
+  })
+});
+
 
 
 app.patch("/api/users/update_owner",function(req, res){

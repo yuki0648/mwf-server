@@ -42,14 +42,14 @@ function embeddedmaker(department){//functionid:1 ==insert functionid:2 ==update
   size=deptsize(department);
   var n = 0;//no. of object
   for(i=0;i<size;i++){
-    if(department[i].deptid==undefined || department[i].deptid==''){
+    if(department[i]._id==undefined || department[i]._id==''){
       continue;
     }else{
-      update.$set['department.'+n+'._id'] = department[i].deptid;
-      if(department[i].deptn==undefined){
+      update.$set['department.'+n+'._id'] = department[i]._id;
+      if(department[i].name==undefined){
       update.$set['department.'+n+'.name'] = "";
     }else{
-      update.$set['department.'+n+'.name'] = department[i].deptn;
+      update.$set['department.'+n+'.name'] = department[i].name;
     }
       n++;
       }
@@ -205,7 +205,18 @@ function querymaker(company,functionid){//functionid:2 == query method,functioni
   }
   if(company.chiname!=undefined && company.chiname!=''){//build a query to query method with chiname
     if(functionid==2){
-      query1.chiname = new RegExp(company.chiname,'i');//search company chiname with 'like'
+      var chiname = '';
+      for(var cs=0;cs<company.chiname.length;cs++){
+        console.log(company.chiname[cs]);
+        console.log('chiname temp '+chiname);
+        if(company.chiname[cs]=='.'||company.chiname[cs]=='{'||company.chiname[cs]=='}'||company.chiname[cs]=='('||company.chiname[cs]==')'){
+          chiname+='\\'+company.chiname[cs];
+        }else{
+          chiname+=company.chiname[cs];
+        }
+      }
+      console.log('chiname temp '+chiname);
+      query1.chiname = new RegExp(chiname,'i');//search company chiname with 'like'
     }
     else if(functionid==3){
       query1.chiname = company.chiname;
@@ -213,7 +224,17 @@ function querymaker(company,functionid){//functionid:2 == query method,functioni
   }
   if(company.engname!=undefined && company.engname!=''){//build a query to query method with engname
     if(functionid==2){
-      query1.engname = new RegExp(company.engname,'i');//search company engname with 'like'
+      var engname = '';
+      for(var es=0;es<company.engname.length;es++){
+        console.log(company.engname[es]);
+        console.log('engname temp '+engname);
+        if(company.engname[es]=='.'||company.engname[es]=='{'||company.engname[es]=='}'||company.engname[es]=='('||company.engname[es]==')'){
+          engname+='\\'+company.engname[es];
+        }else{
+          engname+=company.engname[es];
+        }
+      }
+      query1.engname = new RegExp(engname,'i'); //search company engname with 'like'
     }
     else if(functionid==3){
       query1.engname = company.engname;
@@ -290,10 +311,12 @@ app.post("/api/company/query", function(req, res) {
       if(result.length>0){
         res.send(result);
       }else{
-        res.status(500).send('No Company Found');
+        console.log(result);
+        res.send(result);
       }
     })
     .catch(function(err){
+      console.log('err result');
       res.status(500).send('Error :' + err);
     })
 });
@@ -324,7 +347,7 @@ app.get("/api/company/queryAll", function(req, res) {
       if(result.length>0){
         res.send(result);
       }else{
-        res.status(500).send('No Company Found');
+        res.send(result);
       }
     })
     .catch(function(err){

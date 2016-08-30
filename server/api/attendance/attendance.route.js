@@ -37,10 +37,10 @@ app.get("/api/attendance/queryAll", function(req, res) {
     if(result.length>0){
       res.send(result);
     }else{
-      res.status(500).send('No Attendance Found');
+      res.status(500).send(result);
     }
   }).catch(function(err){
-    res.status(500).send('Error'+err);
+    res.send('Error'+err);
   })
 });
 
@@ -56,7 +56,7 @@ app.post("/api/attendance/query", function(req, res) {
     if(result.length>0){
       res.send(result);
     }else{
-      res.status(500).send('No Attendance Found');
+      res.send(result);
     }
   }).catch(function(err){
     res.status(500).send('Error'+err);
@@ -123,7 +123,11 @@ function querymaker(att){
 app.patch("/api/attendance/update", function(req, res) {
   var att = req.body;
   var query = {_id:att._id};
-  var update = {recorddate:att.recorddate,recordtime:att.recordtime,status:att.status,remarks:att.remarks,iBeaconNo:att.iBeaconNo};
+  var recorddate = dateFormat(new Date(att.recorddate), "isoDate");
+  var update = {recorddate:recorddate,recordtime:att.recordtime,status:att.status,remarks:att.remarks,iBeaconNo:att.iBeaconNo};
+  console.log('hi')
+  console.log(att);
+  console.log(update);
   AttendServ
   .update(query,update)
   .then(function(result){
@@ -137,8 +141,7 @@ app.patch("/api/attendance/update", function(req, res) {
 app.patch("/api/attendance/updates", function(req, res) {
   var att = req.body;
   var query = {_id:{$in:att._id}};
-  var t = 'in';
-  var updates = {status:t};
+  var updates = {status:att.status};
   AttendServ
   .updates(query,updates)
   .then(function(result){
