@@ -152,8 +152,8 @@ app.patch("/api/attendance/updates", function(req, res) {
 });
 
 
-app.delete("/api/attendance/delete", function(req, res) {
-  var att = req.query;
+app.post("/api/attendance/delete", function(req, res) {
+  var att = req.body;
   var del = {_id:att._id};//delete by attendance _id
 
   AttendServ

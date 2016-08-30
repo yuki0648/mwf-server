@@ -386,8 +386,8 @@ app.patch("/api/projects/removestaff", function(req, res) {
 });
 
 
-app.delete("/api/projects/delete", function(req, res) {
-  var project = req.query;
+app.post("/api/projects/delete", function(req, res) {
+  var project = req.body;
   var project_query = {pid:project.pid};
   ProjectServ
     .findOne(project_query)//get sid

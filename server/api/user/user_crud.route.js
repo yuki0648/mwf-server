@@ -101,11 +101,7 @@ app.post("/api/users/query", function(req, res) {
   UserServ
     .finds(query)
     .then(function(result){
-      if(result.length>0){
         res.send(result);
-      }else{
-        res.send(result);
-      }
     })
     .catch(function(err){
       res.status(500).send('Error :' + err);
@@ -187,11 +183,7 @@ app.get("/api/users/queryAll", function(req, res) {
   UserServ
     .find()
     .then(function(result){
-      if(result.length>0){
         res.send(result);
-      }else{
-        res.send(result);
-      }
     })
     .catch(function(err){
       res.status(500).send('Error :' + err);
@@ -251,14 +243,60 @@ app.patch("/api/users/update_owner",function(req, res){
 });
 
 
+function updatemaker(user){
+  var query = {};
+  if(user.chiname!='' && user.chiname!=undefined){
+      query.chiname = user.chiname;
+  }
+  if(user.engname!='' && user.engname!=undefined){
+      query.engname = user.engname;
+  }
+  if(user.email!='' && user.email!=undefined){
+      query.email = user.email;
+  }
+  if( user.password!=undefined){
+      query.password = user.password;
+  }
+  if(user.role!='' && user.role!=undefined){
+      query.role = user.role;
+  }
+  if(user.iBeaconNo!='' && user.iBeaconNo!=undefined){
+      query.iBeaconNo = user.iBeaconNo;
+  }
+  if(user.gender!='' && user.gender!=undefined){
+      query.gender = user.gender;
+  }
+  if(user.contactno!='' && user.contactno!=undefined){
+      query.contactno = user.contactno;
+  }
+  if(user.worktype!='' && user.worktype!=undefined){
+      query.worktype = user.worktype;
+  }
+  if(user.department!='' && user.department!=undefined){
+      query.department = user.department;
+  }
+  if(user.birthday!='' && user.birthday!=undefined){
+      var bday = dateFormat(new Date(user.birthday),"isoDate");
+      query.birthday = bday;
+  }
+  if(user.employment_date!='' && user.employment_date!=undefined){
+     var edate = dateFormat(new Date(user.employment_date),"isoDate");
+     query.employment_date = edate;
+  }
+  return query;
+}
+
+
 app.patch("/api/users/update", function(req, res) {
   var user = req.body;
-  var user_query = {sid:user.sid,cid:user.cid};
+  var user_query = {sid:user.sid};
+  console.log(user_query);
   UserServ
-  .findOne(user_query)//find if the sid and cid existed
+  .findOne(user_query)//find if the sid existed
   .then(function(uresult){
     if(uresult!=null){
       var company_query = {id:user.cid,department:{$elemMatch:{_id:{$in:[user.department]}}}};
+      console.log(JSON.stringify(company_query));
       CompanyServ
       .findOne(company_query)//check if the department existed
       .then(function(cidresult){
@@ -267,12 +305,9 @@ app.patch("/api/users/update", function(req, res) {
               UserServ
               .findOne(emila_query)//find if the email existed
               .then(function(eresult){
-                var bday = dateFormat(new Date(user.birthday),"isoDate");
-                var edate = dateFormat(new Date(user.employment_date),"isoDate");
-                var update_query = {email:user.email,password:user.password,chiname:user.chiname,
-                  engname:user.engname,role:user.role,iBeaconNo:user.iBeaconNo,department:user.department,
-                  worktype:user.worktype,contactno:user.contactno,birthday:bday,employment_date:edate};
-                  console.log(update_query);
+
+                var update_query = updatemaker(user);
+                console.log(update_query);
                 if(eresult==null){
                   if(user.role=='company_admin'){
                     var role_query = {cid:user.cid,role:user.role,sid:{$ne:user.sid}};
@@ -309,13 +344,13 @@ app.patch("/api/users/update", function(req, res) {
                 res.status(500).send('Error : '+err);
               })
           }else{
-            res.status(500).send('Department does not existed');
+            res.status(500).send('Department does not exist');
           }
       }).catch(function(err){//company_query findOne
         res.status(500).send('Error : '+err);
       })
     }else{
-      res.status(500).send('Staff id or Company id does not exist!');
+      res.status(500).send('Staff does not exist!');
     }
   }).catch(function(err){//sid and cid findOne
     res.status(500).send('Error : '+err);
@@ -323,8 +358,8 @@ app.patch("/api/users/update", function(req, res) {
 });
 
 
-app.delete("/api/users/delete", function(req, res) {
-  var user_query = {sid:req.query.sid};
+app.post("/api/users/delete", function(req, res) {
+  var user_query = {sid:req.body.sid};
   UserServ
     .findOne(user_query)//get user data
     .then(function(result){

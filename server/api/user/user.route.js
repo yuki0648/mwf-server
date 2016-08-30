@@ -10,8 +10,9 @@ app.post("/api/users/login", function(req, res) {
     .then(function(result){
     //  console.log(result);
       if(result!=null){
-            var role = getrole(result);
-            res.send(role+'');
+            var resdata = getdata(result);
+            console.log(resdata);
+            res.send(resdata);
       }else{
         res.status(500).send('Invalid userID or password!');
       }
@@ -21,16 +22,23 @@ app.post("/api/users/login", function(req, res) {
     })
 });
 
-function getrole(result){
-  var role;
+function getdata(result){
+  var permission;
+  var  res = {};
   if(result.role=='super_user'){
-    role = 1;
+    permission = 1;
   }else if(result.role=='company_admin'){
-    role = 2;
+    permission = 2;
   }else if(result.role=='department_head'){
-    role = 3;
+    permission = 3;
   }else if(result.role=='employee'){
-    role = 4;
+    permission = 4;
   }
-  return role;
+  res.email = result.email;
+  res.chiname = result.chiname;
+  res.engname = result.engname;
+  res.role = result.role;
+  res.gender = result.gender;
+  res.permission = permission;
+  return res;
 }

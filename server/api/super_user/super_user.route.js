@@ -101,8 +101,13 @@ app.post("/api/company/insert", function(req, res) {
               res.status(500).send('Error: '+err);
           })
       }else{
-        console.log('company name ');
-          res.status(500).send("Company name Already Exists   2");
+        if(qresult.chiname==company.chiname){
+          console.log('chiname exists');
+          res.status(500).send("Company Chiname Already Exists  ");
+        }else{
+          console.log('engname exists');
+          res.status(500).send("Company Engname Already Exists  ");
+        }
       }
   }).catch(function(err){//find if the chi/engname used
     console.log('findOne '+err);
@@ -356,9 +361,10 @@ app.get("/api/company/queryAll", function(req, res) {
 });
 
 
-app.delete("/api/company/delete", function(req, res) {
-  var del = {id:req.query.id};//delete by company id
-
+app.post("/api/company/delete", function(req, res) {
+  var company = req.body;
+  var del = {id:company.id};//delete by company id
+  console.log(del);
   SuperUserServ
     .remove(del)
     .then(function(result){
