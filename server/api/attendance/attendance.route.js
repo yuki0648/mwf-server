@@ -48,6 +48,7 @@ app.get("/api/attendance/queryAll", function(req, res) {
 
 app.post("/api/attendance/query", function(req, res) {
   var att = req.body;
+  console.log(att);
   var query = querymaker(att);
   AttendServ
   .finds(query)
@@ -91,7 +92,6 @@ function querymaker(att){
       query.recorddate = {$gte:start_date,$lte:end_date};
     }
   if(att.start_time!=''||att.end_time!=''){
-    query.recordtime = {};
     var start_time ;
     var end_time ;
     if(att.start_time == ''){
@@ -104,9 +104,18 @@ function querymaker(att){
       start_time = att.start_time;//user entered two arguments
       end_time = att.end_time;
     }
-    query.recordtime = {$gte:start_time,$lte:end_time};
+    console.log(start_time+'  '+end_time);
+    console.log(start_time>end_time);
+    if(start_time>end_time){
+      var st = '00:00:00';
+      var et = '23:59:59';
+      //query.recordtime = {$gte:start_time,$lte:end_time};
+      query.$or = [{recordtime:{$gte:start_time,$lte:et}},{recordtime:{$gte:st,$lte:end_time}}];
+    }else{
+      query.recordtime = {$gte:start_time,$lte:end_time};
+    }
   }
-  console.log(query);
+  console.log(JSON.stringify(query));
   return query;
 }
 
