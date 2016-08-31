@@ -110,7 +110,7 @@ app.post("/api/users/query", function(req, res) {
 
 function querymaker(user){
   var query = {};
-  var arr = ["cid","sid","role","iBeaconNo","gender","contactno","chiname","engname","email","worktype"];
+  var arr = ["cid","sid","role","iBeaconNo","gender","contactno","chiname","engname","email","worktype","department"];
   //date projectno department
   for(var i=0;i<arr.length;i++){
     if(user[arr[i]]!="" ){
